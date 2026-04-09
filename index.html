@@ -29,6 +29,41 @@
             position: relative;
         }
 
+        /* Splash screen */
+        .splash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 1.5s ease;
+        }
+
+        .splash.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .splash-text {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            opacity: 0.5;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
         /* Star field canvas */
         canvas#stars {
             position: fixed;
@@ -49,6 +84,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 2s ease 0.5s;
+        }
+
+        .content.visible {
+            opacity: 1;
         }
 
         .title {
@@ -87,6 +128,35 @@
             opacity: 0.7;
         }
 
+        /* Mute button */
+        .mute-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'EB Garamond', 'Garamond', serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mute-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mute-btn:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         /* Mobile */
         @media (max-width: 600px) {
             .founders {
@@ -99,13 +169,30 @@
             .founder {
                 text-align: center;
             }
+            .mute-btn {
+                bottom: 12px;
+                right: 12px;
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- Splash screen -->
+    <div class="splash" id="splash">
+        <div class="splash-text">click to enter</div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="music" loop preload="auto">
+        <source src="Moonlight_Serenade.mp3" type="audio/mpeg">
+    </audio>
+
     <canvas id="stars"></canvas>
 
-    <div class="content">
+    <div class="content" id="content">
         <h1 class="title">Stargate</h1>
 
         <div class="founders">
@@ -120,14 +207,75 @@
         </div>
     </div>
 
+    <!-- Mute/unmute button -->
+    <button class="mute-btn" id="muteBtn" onclick="toggleMute()">pause music</button>
+
     <script>
+        // === SPLASH & AUDIO ===
+        const splash = document.getElementById('splash');
+        const content = document.getElementById('content');
+        const music = document.getElementById('music');
+        const muteBtn = document.getElementById('muteBtn');
+        let musicPlaying = false;
+
+        splash.addEventListener('click', () => {
+            // Fade out splash
+            splash.classList.add('fade-out');
+            // Fade in content
+            content.classList.add('visible');
+
+            // Start music with fade-in
+            music.volume = 0;
+            music.play().then(() => {
+                musicPlaying = true;
+                // Gradually increase volume over 2 seconds
+                let vol = 0;
+                const fadeIn = setInterval(() => {
+                    vol += 0.02;
+                    if (vol >= 0.5) {
+                        vol = 0.5;
+                        clearInterval(fadeIn);
+                    }
+                    music.volume = vol;
+                }, 50);
+
+                // Show mute button after content fades in
+                setTimeout(() => {
+                    muteBtn.classList.add('visible');
+                }, 2500);
+            }).catch(() => {
+                // If autoplay blocked, still show the site
+                setTimeout(() => {
+                    muteBtn.classList.add('visible');
+                    muteBtn.textContent = 'play music';
+                }, 2500);
+            });
+
+            // Remove splash from DOM after transition
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 2000);
+        });
+
+        function toggleMute() {
+            if (musicPlaying) {
+                music.pause();
+                musicPlaying = false;
+                muteBtn.textContent = 'play music';
+            } else {
+                music.play();
+                musicPlaying = true;
+                muteBtn.textContent = 'pause music';
+            }
+        }
+
+        // === STAR FIELD ===
         const canvas = document.getElementById('stars');
         const ctx = canvas.getContext('2d');
 
         let stars = [];
         let w, h, dpr;
 
-        // Pivot point: bottom-left corner
         const pivotX = 0;
         const pivotY = () => h;
 
@@ -141,14 +289,9 @@
             canvas.style.height = window.innerHeight + 'px';
 
             stars = [];
-            // We need enough stars across the FULL circle so the visible
-            // quadrant (top-right from pivot) is always populated.
-            // Visible area is roughly 1/4 of the full orbit circle,
-            // so we generate ~4x more stars spread across all 360°.
             const area = w * h;
             const visibleStarCount = Math.floor(area / 2800);
             const totalStars = visibleStarCount * 4;
-
             const maxRadius = Math.sqrt(w * w + h * h) * 1.2;
 
             let seed = 42;
@@ -158,12 +301,9 @@
             }
 
             for (let i = 0; i < totalStars; i++) {
-                // Distribute across full 360° and random radii
                 const angle = seededRandom() * Math.PI * 2 - Math.PI;
                 const radius = seededRandom() * maxRadius;
-
-                // Slower speed (0.75x), slight variation by distance
-                const speed = 0.75 * (0.0001 + seededRandom() * 0.0002) * (1 + 0.5 * (1 - radius / maxRadius));
+                const speed = 0.5 * (0.0001 + seededRandom() * 0.0002) * (1 + 0.5 * (1 - radius / maxRadius));
 
                 stars.push({
                     radius: radius,
@@ -177,19 +317,16 @@
 
         function animate() {
             ctx.clearRect(0, 0, w, h);
-
             const py = pivotY();
 
             for (let i = 0; i < stars.length; i++) {
                 const s = stars[i];
                 s.angle += s.speed;
-                // Wrap angle for infinite looping
                 if (s.angle > Math.PI) s.angle -= Math.PI * 2;
 
                 const x = pivotX + s.radius * Math.cos(s.angle);
                 const y = py + s.radius * Math.sin(s.angle);
 
-                // Only draw if on screen (skip off-screen stars for performance)
                 if (x >= -5 && x <= w + 5 && y >= -5 && y <= h + 5) {
                     ctx.beginPath();
                     ctx.arc(x, y, s.size, 0, Math.PI * 2);
