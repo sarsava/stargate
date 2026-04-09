@@ -303,7 +303,7 @@
             for (let i = 0; i < totalStars; i++) {
                 const angle = seededRandom() * Math.PI * 2 - Math.PI;
                 const radius = seededRandom() * maxRadius;
-                const speed = 0.5 * (0.0001 + seededRandom() * 0.0002) * (1 + 0.5 * (1 - radius / maxRadius));
+                const speed = 0.25 * (0.0001 + seededRandom() * 0.0002) * (1 + 0.5 * (1 - radius / maxRadius));
 
                 stars.push({
                     radius: radius,
