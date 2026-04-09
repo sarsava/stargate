@@ -121,46 +121,89 @@
     </div>
 
     <script>
-        // Static star field
         const canvas = document.getElementById('stars');
         const ctx = canvas.getContext('2d');
 
-        function resize() {
-            canvas.width = window.innerWidth * window.devicePixelRatio;
-            canvas.height = window.innerHeight * window.devicePixelRatio;
+        let stars = [];
+        let w, h, dpr;
+
+        // Pivot point: bottom-left corner
+        const pivotX = 0;
+        const pivotY = () => h;
+
+        function initStars() {
+            dpr = window.devicePixelRatio || 1;
+            w = window.innerWidth * dpr;
+            h = window.innerHeight * dpr;
+            canvas.width = w;
+            canvas.height = h;
             canvas.style.width = window.innerWidth + 'px';
             canvas.style.height = window.innerHeight + 'px';
-            drawStars();
-        }
 
-        function drawStars() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars = [];
+            // We need enough stars across the FULL circle so the visible
+            // quadrant (top-right from pivot) is always populated.
+            // Visible area is roughly 1/4 of the full orbit circle,
+            // so we generate ~4x more stars spread across all 360°.
+            const area = w * h;
+            const visibleStarCount = Math.floor(area / 2800);
+            const totalStars = visibleStarCount * 4;
 
-            const area = canvas.width * canvas.height;
-            const starCount = Math.floor(area / 2800);
+            const maxRadius = Math.sqrt(w * w + h * h) * 1.2;
 
-            // Seed-like deterministic random for consistency
             let seed = 42;
             function seededRandom() {
                 seed = (seed * 16807 + 0) % 2147483647;
                 return (seed - 1) / 2147483646;
             }
 
-            for (let i = 0; i < starCount; i++) {
-                const x = seededRandom() * canvas.width;
-                const y = seededRandom() * canvas.height;
-                const radius = seededRandom() * 1.2 + 0.2;
-                const opacity = seededRandom() * 0.6 + 0.15;
+            for (let i = 0; i < totalStars; i++) {
+                // Distribute across full 360° and random radii
+                const angle = seededRandom() * Math.PI * 2 - Math.PI;
+                const radius = seededRandom() * maxRadius;
 
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-                ctx.fill();
+                // Slower speed (0.75x), slight variation by distance
+                const speed = 0.75 * (0.0001 + seededRandom() * 0.0002) * (1 + 0.5 * (1 - radius / maxRadius));
+
+                stars.push({
+                    radius: radius,
+                    angle: angle,
+                    speed: speed,
+                    size: seededRandom() * 1.2 + 0.2,
+                    opacity: seededRandom() * 0.6 + 0.15
+                });
             }
         }
 
-        window.addEventListener('resize', resize);
-        resize();
+        function animate() {
+            ctx.clearRect(0, 0, w, h);
+
+            const py = pivotY();
+
+            for (let i = 0; i < stars.length; i++) {
+                const s = stars[i];
+                s.angle += s.speed;
+                // Wrap angle for infinite looping
+                if (s.angle > Math.PI) s.angle -= Math.PI * 2;
+
+                const x = pivotX + s.radius * Math.cos(s.angle);
+                const y = py + s.radius * Math.sin(s.angle);
+
+                // Only draw if on screen (skip off-screen stars for performance)
+                if (x >= -5 && x <= w + 5 && y >= -5 && y <= h + 5) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, s.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+                    ctx.fill();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', initStars);
+        initStars();
+        animate();
     </script>
 </body>
 </html>
