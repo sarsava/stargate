@@ -176,6 +176,144 @@
                 padding: 6px 12px;
             }
         }
+
+        /* ── Scroll unlock ── */
+        html.scroll-unlocked,
+        html.scroll-unlocked body {
+            height: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        html.scroll-unlocked .content {
+            height: 100vh;
+        }
+
+        /* ── Gateway section ── */
+        .gateway {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 30vh 24px 20vh;
+            text-align: center;
+        }
+
+        .gateway-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.38);
+            margin-bottom: 2rem;
+        }
+
+        .gateway-enter {
+            display: inline-block;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: clamp(1.3rem, 3.5vw, 1.7rem);
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            padding: 14px 32px;
+            cursor: pointer;
+            transition: border-color 0.25s;
+            margin-bottom: 1.5rem;
+        }
+
+        .gateway-enter:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .gateway-sub {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.32);
+            letter-spacing: 0.04em;
+            margin-bottom: 2rem;
+        }
+
+        .gateway-form {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .gateway-form.is-open {
+            display: flex;
+        }
+
+        .gateway-input-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        .gateway-input {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+            padding: 9px 16px;
+            width: 180px;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .gateway-input:focus {
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+
+        .gateway-input::placeholder {
+            color: rgba(255, 255, 255, 0.18);
+            letter-spacing: 0.06em;
+        }
+
+        .gateway-unlock {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 9px 16px;
+            cursor: pointer;
+            transition: background 0.18s, border-color 0.18s, color 0.18s;
+        }
+
+        .gateway-unlock:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .gateway-error {
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            color: rgba(210, 120, 120, 0.75);
+            min-height: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .gateway {
+                padding: 25vh 20px 15vh;
+            }
+
+            .gateway-input-row {
+                flex-direction: column;
+            }
+
+            .gateway-input {
+                width: 200px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -206,6 +344,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Private gateway — visible only after scrolling past hero -->
+    <section class="gateway" id="gateway">
+        <p class="gateway-label">Private Gateway</p>
+        <button class="gateway-enter" id="gatewayEnterBtn">Enter Mission 4999</button>
+        <p class="gateway-sub">Access requires mission key.</p>
+        <div class="gateway-form" id="gatewayForm">
+            <div class="gateway-input-row">
+                <input
+                    type="password"
+                    id="gatewayInput"
+                    class="gateway-input"
+                    autocomplete="off"
+                    inputmode="numeric"
+                    placeholder="Enter passkey"
+                >
+                <button class="gateway-unlock" id="gatewayUnlockBtn">Unlock</button>
+            </div>
+            <p class="gateway-error" id="gatewayError"></p>
+        </div>
+    </section>
 
     <!-- Mute/unmute button -->
     <button class="mute-btn" id="muteBtn" onclick="toggleMute()">pause music</button>
@@ -251,9 +410,10 @@
                 }, 2500);
             });
 
-            // Remove splash from DOM after transition
+            // Remove splash from DOM after transition, then unlock scroll
             setTimeout(() => {
                 splash.style.display = 'none';
+                document.documentElement.classList.add('scroll-unlocked');
             }, 2000);
         });
 
@@ -341,6 +501,48 @@
         window.addEventListener('resize', initStars);
         initStars();
         animate();
+
+        // === GATEWAY ===
+        const MISSION_PASSKEY = '4999';
+        const ACCESS_KEY      = 'stargate_mission4999_access';
+        const MISSION_URL     = '/mission4999/';
+
+        const gatewayEnterBtn  = document.getElementById('gatewayEnterBtn');
+        const gatewayForm      = document.getElementById('gatewayForm');
+        const gatewayInput     = document.getElementById('gatewayInput');
+        const gatewayUnlockBtn = document.getElementById('gatewayUnlockBtn');
+        const gatewayError     = document.getElementById('gatewayError');
+
+        gatewayEnterBtn.addEventListener('click', () => {
+            if (localStorage.getItem(ACCESS_KEY) === 'granted') {
+                window.location.href = MISSION_URL;
+                return;
+            }
+            if (gatewayForm.classList.contains('is-open')) return;
+            gatewayForm.classList.add('is-open');
+            gatewayInput.focus();
+        });
+
+        function attemptUnlock() {
+            if (gatewayInput.value.trim() === MISSION_PASSKEY) {
+                localStorage.setItem(ACCESS_KEY, 'granted');
+                window.location.href = MISSION_URL;
+            } else {
+                gatewayError.textContent = 'Access denied.';
+                gatewayInput.value = '';
+                gatewayInput.focus();
+            }
+        }
+
+        gatewayUnlockBtn.addEventListener('click', attemptUnlock);
+
+        gatewayInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptUnlock();
+        });
+
+        gatewayInput.addEventListener('input', () => {
+            gatewayError.textContent = '';
+        });
     </script>
 </body>
 </html>
