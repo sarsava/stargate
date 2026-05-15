@@ -248,36 +248,6 @@
             }
         }
 
-        /* ── Music button (matches homepage) ── */
-        .music-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 50;
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.5);
-            font-family: 'EB Garamond', 'Garamond', serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.1em;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .music-btn:hover {
-            border-color: rgba(255, 255, 255, 0.5);
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        @media (max-width: 600px) {
-            .music-btn {
-                bottom: 12px;
-                right: 12px;
-                font-size: 0.75rem;
-                padding: 6px 12px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -500,62 +470,6 @@
 
         // ── Init ──────────────────────────────────────────────────────────────
         render(getTotal());
-    </script>
-
-    <audio id="bg-music" src="../Moonlight_Serenade.mp3" loop preload="auto"></audio>
-    <button class="music-btn" id="musicBtn">play music</button>
-
-    <script>
-        (function () {
-            var audio = document.getElementById('bg-music');
-            var musicBtn = document.getElementById('musicBtn');
-            var isPlaying = false;
-            var lastStorageWrite = 0;
-
-            audio.playbackRate = 0.1;
-
-            var savedPos = sessionStorage.getItem('stargate_audio_position');
-            var wasPlaying = sessionStorage.getItem('stargate_audio_playing') === 'true';
-
-            if (savedPos !== null) {
-                audio.currentTime = parseFloat(savedPos);
-            }
-
-            function setPlaying(val) {
-                isPlaying = val;
-                musicBtn.textContent = isPlaying ? 'pause music' : 'play music';
-                sessionStorage.setItem('stargate_audio_playing', String(isPlaying));
-            }
-
-            if (wasPlaying) {
-                audio.play().then(function () {
-                    setPlaying(true);
-                }).catch(function () {
-                    setPlaying(false);
-                });
-            }
-
-            musicBtn.addEventListener('click', function () {
-                if (isPlaying) {
-                    audio.pause();
-                    setPlaying(false);
-                } else {
-                    audio.play().then(function () {
-                        setPlaying(true);
-                    }).catch(function () {
-                        setPlaying(false);
-                    });
-                }
-            });
-
-            audio.addEventListener('timeupdate', function () {
-                var now = Date.now();
-                if (now - lastStorageWrite > 2000) {
-                    sessionStorage.setItem('stargate_audio_position', String(audio.currentTime));
-                    lastStorageWrite = now;
-                }
-            });
-        })();
     </script>
 </body>
 </html>
