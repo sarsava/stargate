@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission €4,999</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000000;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 48px;
+        }
+
+        /* ── Header ── */
+        .card-title {
+            font-size: clamp(1.5rem, 4.5vw, 2rem);
+            font-weight: 400;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            margin-bottom: 0.55rem;
+        }
+
+        .card-sub {
+            font-size: clamp(0.82rem, 1.8vw, 0.95rem);
+            font-weight: 400;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 0.03em;
+            margin-bottom: 2.5rem;
+        }
+
+        /* ── Progress bar ── */
+        .progress-section {
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.65rem;
+        }
+
+        .section-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.38);
+        }
+
+        .progress-pct {
+            font-size: 0.82rem;
+            font-variant-numeric: tabular-nums;
+            color: rgba(255, 255, 255, 0.65);
+            letter-spacing: 0.04em;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ffffff;
+            width: 0%;
+            transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ── Metrics ── */
+        .metrics {
+            margin-bottom: 0;
+        }
+
+        .metric-block {
+            margin-bottom: 1.6rem;
+        }
+
+        .metric-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.38);
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-value {
+            font-size: clamp(1rem, 2.8vw, 1.25rem);
+            font-weight: 400;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+        }
+
+        .metric-value.primary {
+            font-size: clamp(2rem, 6vw, 2.8rem);
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 2rem 0;
+        }
+
+        /* ── Completion ── */
+        .completion-msg {
+            font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+            font-style: italic;
+            letter-spacing: 0.07em;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1.1rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Input section ── */
+        .input-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .amount-input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+            padding: 10px 14px;
+            outline: none;
+            font-variant-numeric: tabular-nums;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .amount-input:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .amount-input::placeholder {
+            color: rgba(255, 255, 255, 0.18);
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-family: 'EB Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: 0.82rem;
+            letter-spacing: 0.14em;
+            padding: 10px 18px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.18s, border-color 0.18s, color 0.18s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .btn-reset {
+            margin-top: 0.85rem;
+            border-color: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.72rem;
+            padding: 8px 14px;
+        }
+
+        .btn-reset:hover {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.65);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .error-msg {
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+            color: rgba(210, 80, 80, 0.85);
+            min-height: 1.1rem;
+            transition: opacity 0.15s;
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 480px) {
+            body {
+                padding: 24px 16px;
+                align-items: flex-start;
+            }
+
+            .card {
+                padding: 32px 24px;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .btn {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card {
+                padding: 28px 16px;
+            }
+
+            .metrics-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+
+        <div class="card-title">Mission €4,999</div>
+        <div class="card-sub">One number. Ten months. Build the machine.</div>
+
+        <!-- Progress bar -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="section-label">Progress</span>
+                <span class="progress-pct" id="pctDisplay">0.00%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Primary metric: total -->
+        <div class="metric-block">
+            <div class="metric-label">Total made</div>
+            <div class="metric-value primary" id="totalDisplay">0,00&nbsp;€</div>
+        </div>
+
+        <!-- Secondary metrics row -->
+        <div class="metrics-row">
+            <div class="metric-block">
+                <div class="metric-label">Remaining</div>
+                <div class="metric-value" id="remainingDisplay">4.999,00&nbsp;€</div>
+            </div>
+            <div class="metric-block">
+                <div class="metric-label">Monthly pace</div>
+                <div class="metric-value" id="paceDisplay">499,90&nbsp;€ / mo</div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Completion message (shown when total >= target) -->
+        <div class="completion-msg" id="completionMsg" style="display:none;">
+            Target cleared. Next gate opens.
+        </div>
+
+        <!-- Input section (hidden when complete) -->
+        <div id="inputSection">
+            <div class="input-row">
+                <input
+                    type="text"
+                    inputmode="decimal"
+                    class="amount-input"
+                    id="amountInput"
+                    placeholder="e.g. 250.00"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <button class="btn" id="addBtn">Add Amount</button>
+            </div>
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+
+        <button class="btn btn-reset" id="resetBtn">Reset Progress</button>
+
+    </div>
+
+    <script>
+        const TARGET      = 4999;
+        const KEY_TOTAL   = 'stargate_mission4999_total';
+        const KEY_STARTED = 'stargate_mission4999_started_at';
+
+        const currFmt = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
+        const totalDisplay     = document.getElementById('totalDisplay');
+        const remainingDisplay = document.getElementById('remainingDisplay');
+        const pctDisplay       = document.getElementById('pctDisplay');
+        const progressFill     = document.getElementById('progressFill');
+        const paceDisplay      = document.getElementById('paceDisplay');
+        const amountInput      = document.getElementById('amountInput');
+        const addBtn           = document.getElementById('addBtn');
+        const resetBtn         = document.getElementById('resetBtn');
+        const errorMsg         = document.getElementById('errorMsg');
+        const completionMsg    = document.getElementById('completionMsg');
+        const inputSection     = document.getElementById('inputSection');
+
+        // ── Parsing ──────────────────────────────────────────────────────────
+        // Accepts: 250 | 250.50 | 250,50 | 1.250,50 | 1,250.50
+        function parseAmount(raw) {
+            let s = raw.trim();
+            if (!s) return NaN;
+
+            const hasDot   = s.includes('.');
+            const hasComma = s.includes(',');
+
+            if (hasDot && hasComma) {
+                const lastDot   = s.lastIndexOf('.');
+                const lastComma = s.lastIndexOf(',');
+                if (lastComma > lastDot) {
+                    // DE thousands: 1.250,50 → remove dots, comma becomes decimal
+                    s = s.replace(/\./g, '').replace(',', '.');
+                } else {
+                    // EN thousands: 1,250.50 → remove commas
+                    s = s.replace(/,/g, '');
+                }
+            } else if (hasComma && !hasDot) {
+                const parts = s.split(',');
+                if (parts.length === 2 && parts[1].length <= 2) {
+                    // Decimal comma: 250,50
+                    s = s.replace(',', '.');
+                } else {
+                    // Thousands comma: 1,250 → 1250
+                    s = s.replace(/,/g, '');
+                }
+            }
+
+            const n = parseFloat(s);
+            return n;
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function getTotal() {
+            const raw = localStorage.getItem(KEY_TOTAL);
+            const n   = parseFloat(raw);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function monthsElapsed(isoString) {
+            const start = new Date(isoString);
+            const now   = new Date();
+            return (now.getFullYear() - start.getFullYear()) * 12
+                 + (now.getMonth() - start.getMonth());
+        }
+
+        function fmt(n) {
+            return currFmt.format(n).replace(/ /g, ' '); // keep NBSP
+        }
+
+        // ── Render ────────────────────────────────────────────────────────────
+        function render(total) {
+            const remaining   = Math.max(TARGET - total, 0);
+            const rawPct      = (total / TARGET) * 100;
+            const barPct      = Math.min(rawPct, 100);
+            const done        = total >= TARGET;
+            const startedAt   = localStorage.getItem(KEY_STARTED);
+
+            totalDisplay.textContent     = fmt(total);
+            remainingDisplay.textContent = fmt(remaining);
+            pctDisplay.textContent       = rawPct.toFixed(2) + '%';
+            progressFill.style.width     = barPct.toFixed(6) + '%';
+
+            if (done) {
+                paceDisplay.textContent = '—';
+            } else if (!startedAt) {
+                paceDisplay.textContent = fmt(TARGET / 10) + ' / mo';
+            } else {
+                const elapsed = monthsElapsed(startedAt);
+                const left    = Math.max(10 - elapsed, 1);
+                paceDisplay.textContent = fmt(remaining / left) + ' / mo';
+            }
+
+            // Completion toggle
+            completionMsg.style.display  = done ? 'block' : 'none';
+            inputSection.style.display   = done ? 'none'  : 'block';
+        }
+
+        // ── Add amount ────────────────────────────────────────────────────────
+        function addAmount() {
+            errorMsg.textContent = '';
+            const raw = amountInput.value;
+
+            if (!raw.trim()) {
+                errorMsg.textContent = 'Please enter an amount.';
+                return;
+            }
+
+            const n = parseAmount(raw);
+
+            if (isNaN(n) || !isFinite(n)) {
+                errorMsg.textContent = 'Not a valid number.';
+                return;
+            }
+            if (n <= 0) {
+                errorMsg.textContent = 'Amount must be greater than zero.';
+                return;
+            }
+
+            // Record start date on first entry
+            if (!localStorage.getItem(KEY_STARTED)) {
+                localStorage.setItem(KEY_STARTED, new Date().toISOString());
+            }
+
+            const newTotal = Math.round((getTotal() + n) * 100) / 100;
+            localStorage.setItem(KEY_TOTAL, newTotal.toString());
+            amountInput.value = '';
+            render(newTotal);
+        }
+
+        // ── Reset ─────────────────────────────────────────────────────────────
+        function resetProgress() {
+            const ok = window.confirm(
+                'Reset all progress to zero?\n\nThis cannot be undone.'
+            );
+            if (!ok) return;
+            localStorage.removeItem(KEY_TOTAL);
+            localStorage.removeItem(KEY_STARTED);
+            render(0);
+        }
+
+        // ── Events ────────────────────────────────────────────────────────────
+        addBtn.addEventListener('click', addAmount);
+        resetBtn.addEventListener('click', resetProgress);
+
+        amountInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') addAmount();
+        });
+
+        amountInput.addEventListener('input', function () {
+            errorMsg.textContent = '';
+        });
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        render(getTotal());
+    </script>
+</body>
+</html>
